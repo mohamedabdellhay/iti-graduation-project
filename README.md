@@ -1,6 +1,6 @@
-# Hotjar Clone - Analytics & Session Recording Platform
+# Analytics & Session Recording Platform
 
-A powerful, scalable analytics platform similar to Hotjar, built with NestJS microservices architecture. Track user behavior, record sessions, generate heatmaps, and gain insights into how users interact with your website.
+A powerful, scalable analytics platform, built with NestJS microservices architecture. Track user behavior, record sessions, generate heatmaps, and gain insights into how users interact with your website.
 
 ## 🚀 Features
 
@@ -77,8 +77,8 @@ The platform consists of 6 microservices:
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/yourusername/hotjar-clone.git
-cd hotjar-clone
+git https://github.com/mohamedabdellhay/iti-graduation-project
+cd iti-graduation-project
 ```
 
 ### 2. Setup environment variables
@@ -200,7 +200,7 @@ PORT=3001
 # Database
 DATABASE_HOST=localhost
 DATABASE_PORT=5432
-DATABASE_NAME=hotjar_auth
+DATABASE_NAME=real-time_auth
 DATABASE_USER=postgres
 DATABASE_PASSWORD=postgres
 
@@ -245,12 +245,12 @@ PORT=3003
 # PostgreSQL
 DATABASE_HOST=localhost
 DATABASE_PORT=5432
-DATABASE_NAME=hotjar_analytics
+DATABASE_NAME=real_time_analytics
 DATABASE_USER=postgres
 DATABASE_PASSWORD=postgres
 
 # MongoDB
-MONGODB_URI=mongodb://localhost:27017/hotjar_events
+MONGODB_URI=mongodb://localhost:27017/real_time_analytics
 
 # Redis
 REDIS_HOST=localhost
@@ -265,7 +265,7 @@ NODE_ENV=development
 PORT=3004
 
 # MongoDB
-MONGODB_URI=mongodb://localhost:27017/hotjar_events
+MONGODB_URI=mongodb://localhost:27017/real_time_events
 
 # Redis Cache
 REDIS_HOST=localhost
@@ -276,7 +276,7 @@ CACHE_TTL=3600
 AWS_REGION=us-east-1
 AWS_ACCESS_KEY_ID=your-access-key
 AWS_SECRET_ACCESS_KEY=your-secret-key
-AWS_S3_BUCKET=hotjar-recordings
+AWS_S3_BUCKET=real-time-recordings
 ```
 
 ### Processing Service (.env)
@@ -287,7 +287,7 @@ NODE_ENV=development
 PORT=3005
 
 # MongoDB
-MONGODB_URI=mongodb://localhost:27017/hotjar_events
+MONGODB_URI=mongodb://localhost:27017/real_time_events
 
 # RabbitMQ
 RABBITMQ_URL=amqp://guest:guest@localhost:5672
@@ -324,7 +324,7 @@ npm run test:tracking
 ## 📦 Project Structure
 
 ```
-hotjar-clone/
+iti-graduation-project/
 ├── api-gateway/              # API Gateway service
 │   ├── src/
 │   ├── test/
