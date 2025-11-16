@@ -1,0 +1,79 @@
+services:
+  # API Gateway
+  api-gateway:
+    build: ./api-gateway
+    ports:
+      - "3000:3000"
+    depends_on:
+      - rabbitmq
+      - redis
+
+  # Auth Service
+  auth-service:
+    build: ./auth-service
+    ports:
+      - "3001:3001"
+    depends_on:
+      - postgres
+
+  # Tracking Service
+  tracking-service:
+    build: ./tracking-service
+    ports:
+      - "3002:3002"
+    depends_on:
+      - redis
+      - rabbitmq
+
+  # Analytics Service
+  analytics-service:
+    build: ./analytics-service
+    ports:
+      - "3003:3003"
+    depends_on:
+      - postgres
+      - mongodb
+
+  # Playback Service
+  playback-service:
+    build: ./playback-service
+    ports:
+      - "3004:3004"
+    depends_on:
+      - mongodb
+
+  # Processing Service
+  processing-service:
+    build: ./processing-service
+    ports:
+      - "3005:3005"
+    depends_on:
+      - rabbitmq
+      - mongodb
+      - redis
+
+  # Infrastructure
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: hotjar_clone
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+
+  mongodb:
+    image: mongo:6
+    ports:
+      - "27017:27017"
+
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
