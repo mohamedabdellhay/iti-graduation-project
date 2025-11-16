@@ -1,79 +1,278 @@
+version: '3.8'
+
 services:
-  # API Gateway
-  api-gateway:
-    build: ./api-gateway
-    ports:
-      - "3000:3000"
-    depends_on:
-      - rabbitmq
-      - redis
-
-  # Auth Service
-  auth-service:
-    build: ./auth-service
-    ports:
-      - "3001:3001"
-    depends_on:
-      - postgres
-
-  # Tracking Service
-  tracking-service:
-    build: ./tracking-service
-    ports:
-      - "3002:3002"
-    depends_on:
-      - redis
-      - rabbitmq
-
-  # Analytics Service
-  analytics-service:
-    build: ./analytics-service
-    ports:
-      - "3003:3003"
-    depends_on:
-      - postgres
-      - mongodb
-
-  # Playback Service
-  playback-service:
-    build: ./playback-service
-    ports:
-      - "3004:3004"
-    depends_on:
-      - mongodb
-
-  # Processing Service
-  processing-service:
-    build: ./processing-service
-    ports:
-      - "3005:3005"
-    depends_on:
-      - rabbitmq
-      - mongodb
-      - redis
-
-  # Infrastructure
+  # =================================================================
+  # Infrastructure Services
+  # =================================================================
+  
   postgres:
-    image: postgres:15
+    image: postgres:15-alpine
+    container_name: hotjar-postgres
+    restart: unless-stopped
     environment:
-      POSTGRES_DB: hotjar_clone
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-hotjar_auth}
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d
+    networks:
+      - hotjar-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   mongodb:
     image: mongo:6
+    container_name: hotjar-mongodb
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME:-root}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD:-mongodb_password}
     ports:
-      - "27017:27017"
+      - "${MONGO_PORT:-27017}:27017"
+    volumes:
+      - mongodb_data:/data/db
+      - mongodb_config:/data/configdb
+    networks:
+      - hotjar-network
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   redis:
-    image: redis:7
+    image: redis:7-alpine
+    container_name: hotjar-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-}
     ports:
-      - "6379:6379"
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - hotjar-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   rabbitmq:
-    image: rabbitmq:3-management
+    image: rabbitmq:3-management-alpine
+    container_name: hotjar-rabbitmq
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:-guest}
     ports:
-      - "5672:5672"
-      - "15672:15672"
+      - "${RABBITMQ_PORT:-5672}:5672"
+      - "${RABBITMQ_MANAGEMENT_PORT:-15672}:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+      - rabbitmq_logs:/var/log/rabbitmq
+    networks:
+      - hotjar-network
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # =================================================================
+  # Application Services (Uncomment when ready to containerize)
+  # =================================================================
+
+  # api-gateway:
+  #   build:
+  #     context: .
+  #     dockerfile: packages/api-gateway/Dockerfile
+  #   container_name: hotjar-api-gateway
+  #   restart: unless-stopped
+  #   ports:
+  #     - "3000:3000"
+  #   environment:
+  #     - NODE_ENV=production
+  #     - PORT=3000
+  #   env_file:
+  #     - packages/api-gateway/.env
+  #   depends_on:
+  #     - redis
+  #     - auth-service
+  #     - tracking-service
+  #     - analytics-service
+  #     - playback-service
+  #   networks:
+  #     - hotjar-network
+
+  # auth-service:
+  #   build:
+  #     context: .
+  #     dockerfile: packages/auth-service/Dockerfile
+  #   container_name: hotjar-auth-service
+  #   restart: unless-stopped
+  #   ports:
+  #     - "3001:3001"
+  #   environment:
+  #     - NODE_ENV=production
+  #     - PORT=3001
+  #   env_file:
+  #     - packages/auth-service/.env
+  #   depends_on:
+  #     - postgres
+  #     - redis
+  #   networks:
+  #     - hotjar-network
+
+  # tracking-service:
+  #   build:
+  #     context: .
+  #     dockerfile: packages/tracking-service/Dockerfile
+  #   container_name: hotjar-tracking-service
+  #   restart: unless-stopped
+  #   ports:
+  #     - "3002:3002"
+  #   environment:
+  #     - NODE_ENV=production
+  #     - PORT=3002
+  #   env_file:
+  #     - packages/tracking-service/.env
+  #   depends_on:
+  #     - redis
+  #     - rabbitmq
+  #   networks:
+  #     - hotjar-network
+
+  # analytics-service:
+  #   build:
+  #     context: .
+  #     dockerfile: packages/analytics-service/Dockerfile
+  #   container_name: hotjar-analytics-service
+  #   restart: unless-stopped
+  #   ports:
+  #     - "3003:3003"
+  #   environment:
+  #     - NODE_ENV=production
+  #     - PORT=3003
+  #   env_file:
+  #     - packages/analytics-service/.env
+  #   depends_on:
+  #     - postgres
+  #     - mongodb
+  #     - redis
+  #   networks:
+  #     - hotjar-network
+
+  # playback-service:
+  #   build:
+  #     context: .
+  #     dockerfile: packages/playback-service/Dockerfile
+  #   container_name: hotjar-playback-service
+  #   restart: unless-stopped
+  #   ports:
+  #     - "3004:3004"
+  #   environment:
+  #     - NODE_ENV=production
+  #     - PORT=3004
+  #   env_file:
+  #     - packages/playback-service/.env
+  #   depends_on:
+  #     - mongodb
+  #     - redis
+  #   networks:
+  #     - hotjar-network
+
+  # processing-service:
+  #   build:
+  #     context: .
+  #     dockerfile: packages/processing-service/Dockerfile
+  #   container_name: hotjar-processing-service
+  #   restart: unless-stopped
+  #   ports:
+  #     - "3005:3005"
+  #   environment:
+  #     - NODE_ENV=production
+  #     - PORT=3005
+  #   env_file:
+  #     - packages/processing-service/.env
+  #   depends_on:
+  #     - mongodb
+  #     - redis
+  #     - rabbitmq
+  #   networks:
+  #     - hotjar-network
+
+  # =================================================================
+  # Optional: Admin Tools
+  # =================================================================
+
+  # pgadmin:
+  #   image: dpage/pgadmin4:latest
+  #   container_name: hotjar-pgadmin
+  #   restart: unless-stopped
+  #   environment:
+  #     PGADMIN_DEFAULT_EMAIL: admin@hotjar.local
+  #     PGADMIN_DEFAULT_PASSWORD: admin
+  #   ports:
+  #     - "5050:80"
+  #   depends_on:
+  #     - postgres
+  #   networks:
+  #     - hotjar-network
+
+  # mongo-express:
+  #   image: mongo-express:latest
+  #   container_name: hotjar-mongo-express
+  #   restart: unless-stopped
+  #   environment:
+  #     ME_CONFIG_MONGODB_ADMINUSERNAME: root
+  #     ME_CONFIG_MONGODB_ADMINPASSWORD: mongodb_password
+  #     ME_CONFIG_MONGODB_URL: mongodb://root:mongodb_password@mongodb:27017/
+  #   ports:
+  #     - "8081:8081"
+  #   depends_on:
+  #     - mongodb
+  #   networks:
+  #     - hotjar-network
+
+  # redis-commander:
+  #   image: rediscommander/redis-commander:latest
+  #   container_name: hotjar-redis-commander
+  #   restart: unless-stopped
+  #   environment:
+  #     - REDIS_HOSTS=local:redis:6379
+  #   ports:
+  #     - "8082:8081"
+  #   depends_on:
+  #     - redis
+  #   networks:
+  #     - hotjar-network
+
+# =================================================================
+# Networks
+# =================================================================
+networks:
+  hotjar-network:
+    driver: bridge
+
+# =================================================================
+# Volumes
+# =================================================================
+volumes:
+  postgres_data:
+    driver: local
+  mongodb_data:
+    driver: local
+  mongodb_config:
+    driver: local
+  redis_data:
+    driver: local
+  rabbitmq_data:
+    driver: local
+  rabbitmq_logs:
+    driver: local

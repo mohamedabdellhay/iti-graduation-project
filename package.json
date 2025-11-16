@@ -1,0 +1,97 @@
+{
+  "name": "hotjar-clone",
+  "version": "1.0.0",
+  "description": "Analytics & Session Recording Platform - Microservices Architecture",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "prepare": "husky install",
+    "install:all": "npm install",
+    "clean": "npm run clean --workspaces",
+    "clean:modules": "rm -rf node_modules && rm -rf packages/*/node_modules",
+    "build": "npm run build --workspaces --if-present",
+    "build:gateway": "npm run build --workspace=@hotjar-clone/api-gateway",
+    "build:auth": "npm run build --workspace=@hotjar-clone/auth-service",
+    "build:tracking": "npm run build --workspace=@hotjar-clone/tracking-service",
+    "build:analytics": "npm run build --workspace=@hotjar-clone/analytics-service",
+    "build:playback": "npm run build --workspace=@hotjar-clone/playback-service",
+    "build:processing": "npm run build --workspace=@hotjar-clone/processing-service",
+    "start:gateway": "npm run start:dev --workspace=@hotjar-clone/api-gateway",
+    "start:auth": "npm run start:dev --workspace=@hotjar-clone/auth-service",
+    "start:tracking": "npm run start:dev --workspace=@hotjar-clone/tracking-service",
+    "start:analytics": "npm run start:dev --workspace=@hotjar-clone/analytics-service",
+    "start:playback": "npm run start:dev --workspace=@hotjar-clone/playback-service",
+    "start:processing": "npm run start:dev --workspace=@hotjar-clone/processing-service",
+    "start:all": "concurrently -n \"gateway,auth,track,analytics,playback,process\" -c \"cyan,green,yellow,blue,magenta,red\" \"npm run start:gateway\" \"npm run start:auth\" \"npm run start:tracking\" \"npm run start:analytics\" \"npm run start:playback\" \"npm run start:processing\"",
+    "start:dev": "npm run start:all",
+    "start:prod:gateway": "npm run start:prod --workspace=@hotjar-clone/api-gateway",
+    "start:prod:auth": "npm run start:prod --workspace=@hotjar-clone/auth-service",
+    "start:prod:tracking": "npm run start:prod --workspace=@hotjar-clone/tracking-service",
+    "start:prod:analytics": "npm run start:prod --workspace=@hotjar-clone/analytics-service",
+    "start:prod:playback": "npm run start:prod --workspace=@hotjar-clone/playback-service",
+    "start:prod:processing": "npm run start:prod --workspace=@hotjar-clone/processing-service",
+    "test": "npm run test --workspaces --if-present",
+    "test:watch": "npm run test:watch --workspaces --if-present",
+    "test:cov": "npm run test:cov --workspaces --if-present",
+    "test:e2e": "npm run test:e2e --workspaces --if-present",
+    "test:gateway": "npm run test --workspace=@hotjar-clone/api-gateway",
+    "test:auth": "npm run test --workspace=@hotjar-clone/auth-service",
+    "test:tracking": "npm run test --workspace=@hotjar-clone/tracking-service",
+    "test:analytics": "npm run test --workspace=@hotjar-clone/analytics-service",
+    "test:playback": "npm run test --workspace=@hotjar-clone/playback-service",
+    "test:processing": "npm run test --workspace=@hotjar-clone/processing-service",
+    "lint": "npm run lint --workspaces --if-present",
+    "lint:fix": "npm run lint:fix --workspaces --if-present",
+    "format": "prettier --write \"packages/**/src/**/*.ts\" \"packages/**/test/**/*.ts\"",
+    "format:check": "prettier --check \"packages/**/src/**/*.ts\" \"packages/**/test/**/*.ts\"",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f",
+    "docker:build": "docker-compose build",
+    "docker:clean": "docker-compose down -v",
+    "db:migrate:auth": "npm run migration:run --workspace=@hotjar-clone/auth-service",
+    "db:migrate:analytics": "npm run migration:run --workspace=@hotjar-clone/analytics-service",
+    "db:seed:auth": "npm run seed:run --workspace=@hotjar-clone/auth-service",
+    "db:seed:analytics": "npm run seed:run --workspace=@hotjar-clone/analytics-service"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@typescript-eslint/eslint-plugin": "^6.13.0",
+    "@typescript-eslint/parser": "^6.13.0",
+    "concurrently": "^8.2.2",
+    "eslint": "^8.55.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.0.1",
+    "husky": "^8.0.3",
+    "lint-staged": "^15.2.0",
+    "prettier": "^3.1.0",
+    "rimraf": "^5.0.5",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "lint-staged": {
+    "*.ts": [
+      "eslint --fix",
+      "prettier --write"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/hotjar-clone.git"
+  },
+  "keywords": [
+    "analytics",
+    "session-recording",
+    "heatmaps",
+    "nestjs",
+    "microservices",
+    "typescript"
+  ],
+  "author": "Your Name",
+  "license": "MIT"
+}
