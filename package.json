@@ -93,5 +93,8 @@
     "typescript"
   ],
   "author": "Your Name",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "@nestjs/config": "^4.0.2"
+  }
 }
